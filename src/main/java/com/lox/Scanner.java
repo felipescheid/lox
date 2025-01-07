@@ -13,7 +13,7 @@ class Scanner {
   private int start = 0;
   private int current = 0;
   private int line = 1;
-  private static final Map<String, TokenType> keyworkds;
+  private static final Map<String, TokenType> keywords;
 
   static {
     keywords = new HashMap<>();
@@ -157,7 +157,7 @@ class Scanner {
 
   private char peek() {
     if (isAtEnd()) return '\0';
-    return source.chartAt(current);
+    return source.charAt(current);
   }
 
   private char peekNext() {
@@ -181,7 +181,7 @@ class Scanner {
 
   private boolean match(char expected) {
     if (isAtEnd()) return false;
-    if (source.chartAt(current) != expected) return false;
+    if (source.charAt(current) != expected) return false;
 
     current++;
     return true;

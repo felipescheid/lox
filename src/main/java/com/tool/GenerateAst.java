@@ -26,46 +26,77 @@ public class GenerateAst {
       String path = outputDir + "/" + baseName + ".java";
       PrintWriter writer = new PrintWriter(path, "UTF-8");
 
-      writer.println("package com.lox");
+      // Imports
+      writer.println("package com.lox;");
       writer.println();
-      writer.println("import java.util.List");
+      writer.println("import java.util.List;");
       writer.println();
+
+      // Class definition
       writer.println("abstract class " + baseName + "{");
 
-      // not a world-class string manipulation code but we have a lot of
-      // control over how it runs since we control the defintions.
+      // Visitor definition
+      defineVisitor(writer, baseName, types);
+
+      // AST Classes definition
       for (String type : types) {
         String className = type.split(":")[0].trim();
         String fields = type.split(":")[1].trim();
         defineType(writer, baseName, className, fields);
       }
 
+      // Accept method definition
+      writer.println();
+      writer.println(" abstract <R> R accept(Visitor<R> visitor);");
+
       writer.println("}");
       writer.close();
     }
 
-    private static void defineType(
-      PrintWriter writer, String baseName,
-      String className, String fieldList
-    ) {
-      writer.println(" static class " + className + " extends " + baseName + " {");
+  private static void defineVisitor(
+      PrintWriter writer, String baseName, List<String> types
+  ) {
+    writer.println(" interface Visitor<R> {");
 
-      // CONSTRUCTOR
-      writer.println(" " + className + "(" + fieldList + ") {");
-
-      String[] fields = fieldList.split(", ");
-      for (String field : fields) {
-        String name = field.split(" ")[1];
-        writer.println(" this." + name + " = " + name + ";");
-      }
-
-      writer.println(" }");
-
-      // FIELDS
-      for (String field : fields) {
-        writer.println(" final " + field + ";");
-      }
-      writer.println(" }");
+    for (String type : types) {
+      String typeName = type.split(":")[0].trim();
+      writer.println("  R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
     }
+
+    writer.println(" }");
+  }
+
+  private static void defineType(
+    PrintWriter writer, String baseName,
+    String className, String fieldList
+  ) {
+    writer.println(" static class " + className + " extends " + baseName + " {");
+
+    // CONSTRUCTOR
+    writer.println("  " + className + "(" + fieldList + ") {");
+
+    String[] fields = fieldList.split(", ");
+    for (String field : fields) {
+      String name = field.split(" ")[1];
+      writer.println("  this." + name + " = " + name + ";");
+    }
+
+    writer.println(" }");
+
+    // FIELDS
+    for (String field : fields) {
+      writer.println(" final " + field + ";");
+    }
+
+    // Visitor pattern
+    writer.println();
+    writer.println(" @Override");
+    writer.println(" <R> R accept(Visitor<R> visitor) {");
+    writer.println("  return visitor.visit" + className + baseName + "(this);");
+    writer.println(" }");
+
+    // Closing bracket for class definition
+    writer.println(" }");
+  }
 
 }
